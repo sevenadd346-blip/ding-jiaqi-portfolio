@@ -31,25 +31,19 @@ function bindVideo(){
  const player=dialog.querySelector('.video-player');
  if(!player)return;
  const video=player.querySelector('video'),play=player.querySelector('.video-play'),seek=player.querySelector('.video-seek'),time=player.querySelector('.video-time'),status=player.querySelector('[role="status"]'),mute=player.querySelector('.video-mute');
- const controller=new AbortController();
- let objectUrl=null,dragging=false,disposed=false;
+ let sourceReady=false,dragging=false,disposed=false;
  const n=Number(player.dataset.film);
  const extension=!player.dataset.src&&n>=5&&video.canPlayType('video/webm; codecs="vp9, opus"')?'webm':'mp4';
  const sync=()=>{time.textContent=`${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;if(!dragging&&Number.isFinite(video.duration)&&video.duration>0)seek.value=String(video.currentTime/video.duration*1000);seek.setAttribute('aria-valuetext',time.textContent);};
  const fail=()=>{if(disposed)return;status.textContent='视频加载失败，请点击重试。';play.textContent='重新加载';play.disabled=false;seek.disabled=true;};
- async function load(){
-  play.disabled=true;seek.disabled=true;play.textContent='加载中…';status.textContent='正在加载视频，加载完成后可拖动进度条。';
-  try{
-   // A complete in-memory media source makes seeking independent of server Range support.
-   const response=await fetch(player.dataset.src||`assets/film-${n}.${extension}`,{signal:controller.signal});
-   if(!response.ok)throw new Error('Media unavailable');
-   const blob=await response.blob();if(disposed)return;
-   if(objectUrl)URL.revokeObjectURL(objectUrl);
-   objectUrl=URL.createObjectURL(new Blob([blob],{type:extension==='webm'?'video/webm':'video/mp4'}));
-   video.src=objectUrl;video.load();
-  }catch(error){if(error.name!=='AbortError')fail();}
+ function load(){
+  play.disabled=true;seek.disabled=true;play.textContent='加载中…';status.textContent='正在载入视频…';
+  // GitHub Pages supports byte ranges: stream immediately and seek without a full download.
+  sourceReady=true;
+  video.src=player.dataset.src||`assets/film-${n}.${extension}`;
+  video.preload='metadata';video.load();
  }
- const toggle=()=>{if(!objectUrl||video.error){load();return;}if(video.paused)video.play().catch(()=>{status.textContent='暂时无法播放，请重试。';});else video.pause();};
+ const toggle=()=>{if(!sourceReady||video.error){load();return;}if(video.paused)video.play().catch(()=>{status.textContent='暂时无法播放，请重试。';});else video.pause();};
  play.addEventListener('click',toggle);video.addEventListener('click',()=>{if(!play.disabled)toggle();});
  video.addEventListener('loadedmetadata',()=>{play.disabled=false;seek.disabled=false;play.textContent='播放';status.textContent='视频已就绪，可拖动进度条。';sync();});
  video.addEventListener('timeupdate',sync);
@@ -65,7 +59,7 @@ function bindVideo(){
  seek.addEventListener('pointercancel',()=>{dragging=false;});
  mute.addEventListener('click',()=>{video.muted=!video.muted;mute.textContent=video.muted?'开启声音':'静音';mute.setAttribute('aria-label',mute.textContent);});
  player.querySelector('.video-fullscreen').addEventListener('click',()=>{const result=document.fullscreenElement?document.exitFullscreen():player.requestFullscreen?.();result?.catch(()=>{status.textContent='当前浏览器暂不支持全屏。';});});
- videoCleanup=()=>{disposed=true;controller.abort();video.pause();video.removeAttribute('src');video.load();if(objectUrl)URL.revokeObjectURL(objectUrl);};
+ videoCleanup=()=>{disposed=true;video.pause();video.removeAttribute('src');video.load();};
  load();
 }
 const imageViewer=document.createElement('dialog');
