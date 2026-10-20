@@ -32,6 +32,9 @@ function bindVideo(){
    if(at)video.addEventListener('loadedmetadata',()=>{if(!disposed)video.currentTime=at;},{once:true});
   }else if(window.Hls?.isSupported()){
    hls=new Hls({startLevel:quality.value==='hd'?1:0,startPosition:at,maxBufferLength:12,maxMaxBufferLength:24,backBufferLength:6,capLevelToPlayerSize:true,enableWorker:true});
+   for(const event of [Hls.Events.MANIFEST_LOADED,Hls.Events.LEVEL_LOADED,Hls.Events.FRAG_LOADED]){
+    hls.on(event,()=>{if(pending&&!disposed&&!failed)armTimer();});
+   }
    hls.on(Hls.Events.MANIFEST_PARSED,()=>{
     if(quality.value!=='auto')hls.currentLevel=quality.value==='hd'?1:0;
    });
@@ -63,6 +66,7 @@ function bindVideo(){
  };
  play.addEventListener('click',toggle);video.addEventListener('click',toggle);
  video.addEventListener('loadedmetadata',()=>{seek.disabled=false;sync();});
+ video.addEventListener('progress',()=>{if(pending&&!disposed&&!failed&&video.buffered.length)armTimer();});
  video.addEventListener('loadeddata',()=>{if(!pending&&!failed){clearTimer();play.textContent='播放';status.textContent='视频已就绪';}});
  video.addEventListener('playing',()=>{clearTimer();pending=false;failed=false;play.textContent='暂停';status.textContent='正在播放';});
  video.addEventListener('waiting',()=>{if(!failed&&(pending||!video.paused)){status.textContent='正在缓冲…';armTimer();}});
