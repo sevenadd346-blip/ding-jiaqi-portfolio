@@ -10,12 +10,16 @@ function bindVideo(){
  videoCleanup?.();videoCleanup=null;
  const player=document.querySelector('#project-dialog .video-player');if(!player)return;
  const video=player.querySelector('video'),play=player.querySelector('.video-play'),seek=player.querySelector('.video-seek'),time=player.querySelector('.video-time'),status=player.querySelector('.video-status'),quality=player.querySelector('.video-quality'),mute=player.querySelector('.video-mute');
- let hls=null,started=false,disposed=false,failed=false,dragging=false,pending=false,timer=null,recoveries=0,savedTime=0;
+ let hls=null,started=false,disposed=false,failed=false,dragging=false,pending=false,timer=null,retryTimer=null,restarts=0,recoveries=0,savedTime=0;
  const base=`media/${player.dataset.media}/`;
  const clearTimer=()=>{clearTimeout(timer);timer=null;};
  const fail=(message='视频暂时加载失败，请点击重试。')=>{
   if(disposed)return;clearTimer();failed=true;pending=false;savedTime=video.currentTime||savedTime;
   hls?.stopLoad();video.pause();play.disabled=false;play.textContent='重试播放';status.textContent=message;
+  if(restarts++<1){
+   status.textContent='连接较慢，正在自动重试…';
+   retryTimer=setTimeout(()=>{if(!disposed){load(savedTime);playVideo();}},500);
+  }
  };
  const armTimer=()=>{clearTimer();timer=setTimeout(()=>fail('加载超时，请点击重试；网络较慢时可选择流畅画质。'),25000);};
  const sync=()=>{
@@ -60,7 +64,7 @@ function bindVideo(){
   });
  }
  const toggle=()=>{
-  if(!started||failed){load(failed?savedTime:0);playVideo();return;}
+  if(!started||failed){clearTimeout(retryTimer);restarts=0;load(failed?savedTime:0);playVideo();return;}
   if(pending&&!video.readyState){video.pause();pending=false;clearTimer();play.textContent='播放';status.textContent='已暂停加载，可点击继续。';return;}
   if(video.paused)playVideo();else video.pause();
  };
@@ -89,5 +93,5 @@ function bindVideo(){
   if(player.requestFullscreen)player.requestFullscreen().catch(()=>{status.textContent='当前浏览器暂不支持全屏。';});
   else if(video.webkitEnterFullscreen)video.webkitEnterFullscreen();
  });
- videoCleanup=()=>{disposed=true;clearTimer();hls?.destroy();hls=null;video.pause();video.removeAttribute('src');video.load();};
+ videoCleanup=()=>{disposed=true;clearTimer();clearTimeout(retryTimer);hls?.destroy();hls=null;video.pause();video.removeAttribute('src');video.load();};
 }
