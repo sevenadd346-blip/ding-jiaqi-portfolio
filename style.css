@@ -48,3 +48,15 @@ button.play-link{width:100%;background:transparent;cursor:pointer;text-align:lef
 .pandora-stills figcaption small{font:12px/1.7 var(--sans);color:var(--muted);text-align:right}
 @media(max-width:950px){.gameplay-grid{gap:18px}.showcase-caption{gap:8px}.showcase-caption strong{font-size:21px}.visual-feature{gap:30px}.visual-feature-copy h4{font-size:24px}.pandora-stills{gap:26px}.pandora-stills figcaption{display:block}.pandora-stills figcaption small{display:block;text-align:left;margin-top:3px}}
 @media(max-width:650px){.showcase-heading{display:block;padding:22px 0}.showcase-heading p{margin-top:8px}.showcase-heading h3 span{margin-left:9px;font-size:10px}.gameplay-grid,.visual-feature,.pandora-stills{grid-template-columns:1fr}.gameplay-grid{gap:32px}.visual-feature{gap:24px}.visual-feature-copy{border-left:1px solid var(--line);padding-left:20px}.showcase-caption strong{font-size:25px}.showcase-description{font-size:14px}.pandora-showcase{margin-top:8px}.showcase-frame img{object-fit:contain}}
+
+/* Three selected disciplines, matching the order of the work chapters. */
+.contents{grid-template-columns:.8fr repeat(3,minmax(0,1fr))}
+.contents-item:nth-child(2){background:#697b87}.contents-item:nth-child(3){background:#8d9aa3}.contents-item:nth-child(4){background:#bdc6cc}
+.contents-item:nth-child(3) .contents-label{color:var(--ink);text-shadow:none}
+.video-player{position:relative}.video-player video{aspect-ratio:16/9;object-fit:contain;background:#273746}
+.video-player .video-status{min-height:1.8em}.quality-label{font:13px var(--sans);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.video-quality{background:var(--paper);color:var(--ink);border:1px solid var(--line);padding:7px;font:inherit}
+.video-controls button,.video-quality{min-height:40px}.video-seek{touch-action:pan-y}
+@media(max-width:600px){.contents{grid-template-columns:repeat(3,minmax(0,1fr));min-height:0}.contents-title{grid-column:1/-1;flex-direction:row;gap:20px;padding:25px 15px}.contents-title h2{writing-mode:horizontal-tb;font-size:40px}.contents-item{min-height:210px}.contents-number{font-size:140px}.contents-label{font-size:15px}.contents-label>span{font-size:24px}.quality-label{margin-left:0}.video-controls{gap:8px}}
+
+@media(max-width:600px){.contents .contents-item{grid-column:auto;min-height:210px}}
